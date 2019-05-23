@@ -6,7 +6,7 @@
 [![Downloads](https://img.shields.io/github/downloads/kishaningithub/dynamodb-backup-restore/latest/total.svg)](https://github.com/kishaningithub/dynamodb-backup-restore/releases)
 [![Latest release](https://img.shields.io/github/release/kishaningithub/dynamodb-backup-restore.svg)](https://github.com/kishaningithub/dynamodb-backup-restore/releases)
 
-No sweat backup and restore for dynamodb
+A no sweat backup and restore tool for dynamodb
 
 ## Table of Contents
 
@@ -52,6 +52,22 @@ AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employe
 
 ```bash
 AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employee-details  -m restore -i employee-details.json
+```
+
+### Backing up multiple tables at once
+
+```bash
+export AWS_REGION=eu-west-1 
+export AWS_SDK_LOAD_CONFIG=true
+cat tables | xargs -I {} dynamodb-backup-restore -t {} -m backup -o {}.json
+```
+
+### Restoring up multiple tables at once
+
+```bash
+export AWS_REGION=eu-west-1 
+export AWS_SDK_LOAD_CONFIG=true
+cat tables | xargs -I {} dynamodb-backup-restore -t {}  -m restore -i {}.json
 ```
 
 ## Usage

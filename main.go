@@ -41,7 +41,7 @@ func backup(dynamoDB *dynamodb.DynamoDB, tableName string, outputFilePath string
 		TableName: aws.String(tableName),
 	})
 	checkError("unable to fetch total count of records", err)
-	bar := pb.StartNew(int(*output.Table.ItemCount))
+	bar := pb.StartNew(int(*output.Table.ItemCount)).Prefix(tableName)
 	result := doFirstScan(tableName, dynamoDB, bar)
 	doSubSequentScan(result, tableName, dynamoDB, bar)
 	writeBackupJSON(outputFilePath)
@@ -89,7 +89,7 @@ func doSubSequentScan(firstScanResult *dynamodb.ScanOutput, tableName string, dy
 
 func restore(backupFile string, tableName string, dynamoDB *dynamodb.DynamoDB) {
 	items := getItemsFromBackup(backupFile)
-	bar := pb.StartNew(len(items))
+	bar := pb.StartNew(len(items)).Prefix(tableName)
 	writeItems(items, tableName,dynamoDB, bar)
 }
 

@@ -27,4 +27,4 @@ brew:
   url_template: "https://github.com/kishaningithub/dynamodb-backup-restore/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
   folder: Formula
   homepage: "https://github.com/kishaningithub/dynamodb-backup-restore"
-  description: "No sweat backup and restore for dynamodb"
+  description: "A no sweat backup and restore tool for dynamodb"
