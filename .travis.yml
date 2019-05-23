@@ -1,0 +1,16 @@
+sudo: false
+language: go
+
+env:
+  global:
+    - secure: "ngauD6YaAjfZR+g+xumrVVetQJStHQGVkTWiO4p8yIxytB+OysNDGll1FQGZjtqP7w4JaGlEZeMeQ2WyWdzFDuiPqNDBPzIbX90np7qzV+7mizUABQfLdebzJSQ0X9JUXA6B2JWHu82IYKqr7l/q2zkFXxzN15NSOn7FqNqsVn7PYoevRYv5NYN3qXjw5jFKZOEyQKYPm5VwGV+nygRXdhL8u97esrmkZIdJagCC9QDra0eTdrvtTlTnxXVP/8ix042FMxbQCaR/Lj+gffVBNKB8+jAHV90WK3dDKvEZ08c2KZ9UvkEIoU/IgGLMELIDngZBTHO1rCoxuL/YYhD0AMnwZrX9HLNgjKZw5nx0qOOx8M/EAIZgRpvYP98ADnGlVMG1RctjCdXFOn7WmOBVhdgfuGkaNoCtYNjs6bLsLIwcadjiEJihBsGfHB98Nwq86kw5o79VKS1Qo0MV4xr1en9xhhb5uPGFs08eXEV49hgimHCtpJLO1uRVjehDTZVOiW7JdusFGzW85K1yQBCNrm3hI39aDnneiTFAE17lO5XMFetayXJAiY0JMDNUbxbyFt6KxR0nSdj33Vtc7zEiknbdhr3BvSlnE+DbXvwUoWT/gmXJWOXWu1Qd4VbTTLKOMhWzcroifEvex/3c20gfy339XJ0qajilIeYAnIJGR3c="
+
+go:
+- 1.12.x
+install:
+- GO111MODULE=on go get -t -v ./...
+script:
+- GO111MODULE=on go test -v ./...
+after_success:
+- export GO111MODULE=on
+- test -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash
