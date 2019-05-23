@@ -6,7 +6,7 @@
 [![Downloads](https://img.shields.io/github/downloads/kishaningithub/dynamodb-backup-restore/latest/total.svg)](https://github.com/kishaningithub/dynamodb-backup-restore/releases)
 [![Latest release](https://img.shields.io/github/release/kishaningithub/dynamodb-backup-restore.svg)](https://github.com/kishaningithub/dynamodb-backup-restore/releases)
 
-Clone dynamodb table to local
+No sweat backup and restore for dynamodb
 
 ## Table of Contents
 
