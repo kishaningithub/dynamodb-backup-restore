@@ -43,6 +43,7 @@ func (restore *restore) Restore() {
 		}(item)
 	}
 	wg.Wait()
+	fmt.Printf("Restore completed successfully!! 🎉 🎉")
 }
 
 func (restore *restore) getItemsFromBackup() []models.BackupFormat {

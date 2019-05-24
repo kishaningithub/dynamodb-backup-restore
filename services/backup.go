@@ -56,6 +56,7 @@ func (backup *backup) Backup() {
 	}
 	backup.writeBackupJSON(backup.backupFilePath, items)
 	fmt.Printf("Backup written to file %s successfully!! 🎉 🎉", backup.backupFilePath)
+	fmt.Println()
 }
 
 func (backup *backup) findTables() []string {
