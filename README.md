@@ -42,24 +42,28 @@ wget -O - -q https://raw.githubusercontent.com/kishaningithub/dynamodb-backup-re
 
 ## Example
 
-### Backup
+### Backup single table
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employee-details  -m backup -o employee-details.json
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employee-details -m backup -o backup-file
+```
+
+### Backup tables using regex pattern
+
+```bash
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t '.*-details' -m backup -o backup-file
+```
+
+### Backup all tables
+
+```bash
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t '.*' -m backup -o backup-file
 ```
 
 ### Restore
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employee-details  -m restore -i employee-details.json
-```
-
-### Backing up multiple tables at once
-
-```bash
-export AWS_REGION=eu-west-1 
-export AWS_SDK_LOAD_CONFIG=true
-cat tables | xargs -I {} dynamodb-backup-restore -t {} -m backup -o {}.json
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -m restore -i backup-file
 ```
 
 ### Restoring up multiple tables at once
@@ -67,7 +71,7 @@ cat tables | xargs -I {} dynamodb-backup-restore -t {} -m backup -o {}.json
 ```bash
 export AWS_REGION=eu-west-1 
 export AWS_SDK_LOAD_CONFIG=true
-cat tables | xargs -I {} dynamodb-backup-restore -t {}  -m restore -i {}.json
+cat tables | xargs -I {} dynamodb-backup-restore -P 4 -t {}  -m restore -i {}.json
 ```
 
 ## Usage
