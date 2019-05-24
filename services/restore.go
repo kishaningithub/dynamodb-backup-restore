@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/gosuri/uiprogress"
 	"github.com/kishaningithub/dynamodb-backup-restore/models"
 	"github.com/kishaningithub/dynamodb-backup-restore/utils"
-	"gopkg.in/cheggaaa/pb.v1"
 	"os"
 	"sync"
 )
@@ -32,12 +32,13 @@ func (restore *restore) Restore() {
 	itemsFromBackup := restore.getItemsFromBackup()
 	var wg sync.WaitGroup
 	wg.Add(len(itemsFromBackup))
+	uiprogress.Start()
 	for _, item := range itemsFromBackup {
 		go func(item models.BackupFormat) {
 			defer wg.Done()
-			bar := pb.StartNew(len(item.Items)).Prefix(item.TableName)
+			bar := utils.GetProgressBar(item.TableName, len(item.Items))
 			restore.writeItems(item, func() {
-				bar.Increment()
+				bar.Incr()
 			})
 		}(item)
 	}
@@ -49,8 +50,8 @@ func (restore *restore) getItemsFromBackup() []models.BackupFormat {
 	file, err := os.Open(restore.backupFilePath)
 	utils.CheckError("Opening file failed", err)
 	decoder := json.NewDecoder(file)
-	err = decoder.Decode(items)
-	utils.CheckError("Error while decoding fetchItems file", err)
+	err = decoder.Decode(&items)
+	utils.CheckError("Error while decoding backup file", err)
 	return items
 }
 

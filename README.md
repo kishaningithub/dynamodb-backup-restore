@@ -66,29 +66,22 @@ AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t '.*' -m
 AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -m restore -i backup-file
 ```
 
-### Restoring up multiple tables at once
-
-```bash
-export AWS_REGION=eu-west-1 
-export AWS_SDK_LOAD_CONFIG=true
-cat tables | xargs -I {} dynamodb-backup-restore -P 4 -t {}  -m restore -i {}.json
-```
-
 ## Usage
 
 ```bash
 dynamodb-backup-restore -h
 Usage:
-  main [OPTIONS]
+  dynamodb-backup-restore [OPTIONS]
 
 Application Options:
-  -t, --table-name= Name of the dynamo db table
-  -m, --mode=       Mode of operation (backup,restore)
-  -o, --output=     Output file for backup
-  -i, --input=      Input file for restore
+  -t, --table-name=   Table name pattern
+  -m, --mode=         Mode of operation (backup,restore)
+  -o, --output=       Output file for backup
+  -i, --input=        Input file for restore
+  -e, --endpoint-url= Endpoint url of destination dynamodb instance (Very useful for restoring data into local dynamodb instance)
 
 Help Options:
-  -h, --help        Show this help message
+  -h, --help          Show this help message
 ```
 
 ## Maintainers

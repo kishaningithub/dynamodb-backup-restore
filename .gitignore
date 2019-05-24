@@ -139,4 +139,4 @@ Temporary Items
 .idea/*
 .envrc
 *.json
-backup_file
+backup_file*

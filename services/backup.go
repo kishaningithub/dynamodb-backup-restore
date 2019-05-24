@@ -78,7 +78,7 @@ func (backup *backup) fetchItems(tableName string) []map[string]*dynamodb.Attrib
 		TableName: aws.String(tableName),
 	})
 	utils.CheckError("unable to fetch total count of records", err)
-	bar := backup.getProgressBar(tableName, int(*output.Table.ItemCount))
+	bar := utils.GetProgressBar(tableName, int(*output.Table.ItemCount))
 	utils.CheckError("unable to set max count of progress bar", err)
 	var items []map[string]*dynamodb.AttributeValue
 	backup.scan(tableName, func(value map[string]*dynamodb.AttributeValue) {
@@ -86,14 +86,6 @@ func (backup *backup) fetchItems(tableName string) []map[string]*dynamodb.Attrib
 		bar.Incr()
 	})
 	return items
-}
-
-func (backup *backup) getProgressBar(tableName string, itemCount int) *uiprogress.Bar {
-	return uiprogress.AddBar(int(itemCount)).
-		AppendCompleted().AppendElapsed().
-		PrependFunc(func(b *uiprogress.Bar) string {
-		return fmt.Sprintf("%s %d/%d",tableName, b.Current(), itemCount)
-	})
 }
 
 func (backup *backup) writeBackupJSON(outputFilePath string, items []models.BackupFormat) {

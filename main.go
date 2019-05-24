@@ -19,7 +19,7 @@ func main() {
 		os.Exit(0)
 	}
 	dynamoDB := getDynamoDbInstance(opts)
-	if strings.EqualFold(opts.Mode,"backup") {
+	if strings.EqualFold(opts.Mode, "backup") {
 		backupService := services.NewBackup(dynamoDB, opts.TableNamePattern, opts.BackupOutputFilePath)
 		backupService.Backup()
 	} else {
@@ -37,5 +37,3 @@ func getDynamoDbInstance(opts models.Options) *dynamodb.DynamoDB {
 		return dynamodb.New(sess, aws.NewConfig().WithEndpoint(opts.EndpointUrl))
 	}
 }
-
-
