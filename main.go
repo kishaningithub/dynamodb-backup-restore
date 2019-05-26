@@ -8,24 +8,33 @@ import (
 	"github.com/kishaningithub/dynamodb-backup-restore/models"
 	"github.com/kishaningithub/dynamodb-backup-restore/services"
 	"github.com/kishaningithub/dynamodb-backup-restore/utils"
-	"os"
 	"strings"
 )
 
 func main() {
-	opts := models.Options{}
-	_, err := flags.Parse(&opts)
-	if err != nil {
-		os.Exit(0)
-	}
+	opts := getApplicationOptions()
 	dynamoDB := getDynamoDbInstance(opts)
 	if strings.EqualFold(opts.Mode, "backup") {
-		backupService := services.NewBackup(dynamoDB, opts.TableNamePattern, opts.BackupOutputFilePath)
+		backupService := services.NewBackup(dynamoDB, opts)
 		backupService.Backup()
 	} else {
-		restoreService := services.NewRestore(dynamoDB, opts.RestoreInputFilePath)
+		restoreService := services.NewRestore(dynamoDB, opts)
 		restoreService.Restore()
 	}
+}
+
+func getApplicationOptions() models.Options {
+	opts := models.Options{}
+	_, err := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash).Parse()
+	if err != nil {
+		if flagsErr, ok := err.(*flags.Error); ok {
+			if flagsErr.Type == flags.ErrHelp {
+				utils.CheckError("", flagsErr)
+			}
+		}
+		utils.CheckError("invalid options", err)
+	}
+	return opts
 }
 
 func getDynamoDbInstance(opts models.Options) *dynamodb.DynamoDB {

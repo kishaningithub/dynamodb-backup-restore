@@ -12,7 +12,7 @@ A no sweat backup and restore tool for dynamodb
 
 - [dynamodb-backup-restore](#dynamodb-backup-restore)
   - [Table of Contents](#table-of-contents)
-  - [Install](#install)
+  - [Installation](#installation)
     - [Using Homebrew](#using-homebrew)
     - [Using Binary](#using-binary)
   - [Example](#example)
@@ -21,7 +21,7 @@ A no sweat backup and restore tool for dynamodb
   - [Contribute](#contribute)
   - [License](#license)
 
-## Install
+## Installation
 
 ### Using Homebrew
 
@@ -51,13 +51,13 @@ AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employe
 ### Backup tables using regex pattern
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t '.*-details' -m backup -o backup-file
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -p '.*-details' -m backup -o backup-file
 ```
 
 ### Backup all tables
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t '.*' -m backup -o backup-file
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -p '.*' -m backup -o backup-file
 ```
 
 ### Restore
@@ -74,14 +74,15 @@ Usage:
   dynamodb-backup-restore [OPTIONS]
 
 Application Options:
-  -t, --table-name=   Table name pattern
-  -m, --mode=         Mode of operation (backup,restore)
-  -o, --output=       Output file for backup
-  -i, --input=        Input file for restore
-  -e, --endpoint-url= Endpoint url of destination dynamodb instance (Very useful for restoring data into local dynamodb instance)
+  -t, --table-name=         Table name
+  -p, --table-name-pattern= Table name pattern
+  -m, --mode=               Mode of operation (backup,restore)
+  -i, --input-backup-file=  Input backup file path
+  -o, --output-backup-file= Output backup file path
+  -e, --endpoint-url=       Endpoint url of destination dynamodb instance (Very useful for operating with local dynamodb instance)
 
 Help Options:
-  -h, --help          Show this help message
+  -h, --help                Show this help message
 ```
 
 ## Maintainers
@@ -90,7 +91,10 @@ Help Options:
 
 ## Contribute
 
-PRs accepted.
+1. Fork and fix/implement in a branch.
+2. Make sure tests pass.
+3. Make sure you've added new coverage.
+4. Submit a PR.
 
 Small note: If editing the README, please conform to the [standard-readme](https://github.com/RichardLitt/standard-readme) specification.
 

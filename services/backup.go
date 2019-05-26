@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,53 +19,55 @@ type Backup interface {
 }
 
 type backup struct {
-	dynamoDB         *dynamodb.DynamoDB
-	tableNamePattern string
-	backupFilePath   string
+	dynamoDB *dynamodb.DynamoDB
+	options  models.Options
 }
 
-func NewBackup(dynamoDB *dynamodb.DynamoDB, tableNamePattern string, backupFilePath string) Backup {
+func NewBackup(dynamoDB *dynamodb.DynamoDB, options models.Options) Backup {
 	return &backup{
-		dynamoDB:         dynamoDB,
-		tableNamePattern: tableNamePattern,
-		backupFilePath:   backupFilePath,
+		dynamoDB: dynamoDB,
+		options:  options,
 	}
 }
 
 func (backup *backup) Backup() {
-	tables := backup.findTables()
-	backupItems := make(chan models.BackupFormat, len(tables))
+	utils.PrintInfo("Starting backup...")
+	f, err := os.Create(backup.options.GetBackupFilePath())
+	utils.CheckError("unable create backup file", err)
+	bufferedWriter := bufio.NewWriter(f)
+	encoder := json.NewEncoder(bufferedWriter)
+	backupHeader := backup.getBackupHeader(backup.findTables())
+	err = encoder.Encode(backupHeader)
+	utils.CheckError("Error occurred when encoding header", err)
 	var wg sync.WaitGroup
-	wg.Add(len(tables))
+	wg.Add(backupHeader.GetNoOfTables())
 	uiprogress.Start()
-	for _, table := range tables {
-		go func(table string) {
+	for _, table := range backupHeader.GetTables() {
+		bar := utils.GetProgressBar(table, backupHeader.GetTableInfo(table).TotalRecords)
+		go func(table string, bar *uiprogress.Bar) {
 			defer wg.Done()
-			items := backup.fetchItems(table)
-			backupItem := models.BackupFormat{
-				TableName: table,
-				Items:     items,
-			}
-			backupItems <- backupItem
-		}(table)
+			backup.backupTable(table, bar, encoder)
+		}(table, bar)
 	}
 	wg.Wait()
-	close(backupItems)
-	var items []models.BackupFormat
-	for backupItem := range backupItems {
-		items = append(items, backupItem)
-	}
-	backup.writeBackupJSON(backup.backupFilePath, items)
-	fmt.Printf("Backup written to file %s successfully!! 🎉 🎉", backup.backupFilePath)
-	fmt.Println()
+	utils.CheckError("unable write to backup file", err)
+	err = bufferedWriter.Flush()
+	utils.CheckError("unable write to backup file", err)
+	err = f.Close()
+	utils.CheckError("unable close backup file", err)
+	uiprogress.Stop()
+	utils.PrintInfo(fmt.Sprintf("Backup written to file %s successfully!! 🎉 🎉", backup.options.GetBackupFilePath()))
 }
 
 func (backup *backup) findTables() []string {
-	input := &dynamodb.ListTablesInput{}
-	result, err := backup.dynamoDB.ListTables(input)
+	if len(backup.options.TableName) > 0 {
+		return []string{backup.options.TableName}
+	}
+	input := dynamodb.ListTablesInput{}
+	result, err := backup.dynamoDB.ListTables(&input)
 	utils.CheckError("Unable to fetch list of tables", err)
 	var tableNames []string
-	r, err := regexp.Compile(backup.tableNamePattern)
+	r, err := regexp.Compile(backup.options.TableNamePattern)
 	utils.CheckError("Invalid table name pattern", err)
 	for _, tableName := range result.TableNames {
 		if r.MatchString(*tableName) {
@@ -74,45 +77,59 @@ func (backup *backup) findTables() []string {
 	return tableNames
 }
 
-func (backup *backup) fetchItems(tableName string) []map[string]*dynamodb.AttributeValue {
+func (backup *backup) getBackupHeader(tables []string) models.BackupHeader {
+	tableInfo := make(map[string]models.TableMetaData)
+	for _, table := range tables {
+		totalRecords := backup.findNoOfRecords(table)
+		if totalRecords == 0 {
+			utils.PrintInfo(fmt.Sprintf("Skipping table %s as it is empty...", table))
+			continue
+		}
+		tableInfo[table] = models.TableMetaData{
+			TotalRecords: totalRecords,
+		}
+	}
+	return models.BackupHeader{
+		TableInfo: tableInfo,
+	}
+}
+
+func (backup *backup) backupTable(tableName string, bar *uiprogress.Bar, encoder *json.Encoder) {
+	backup.scan(tableName, func(value map[string]*dynamodb.AttributeValue) {
+		backupData := models.BackupRecord{
+			TableName: tableName,
+			Item:      value,
+		}
+		err := encoder.Encode(backupData)
+		utils.CheckError("unable to write to backup file", err)
+		bar.Incr()
+	})
+}
+
+func (backup *backup) findNoOfRecords(tableName string) int {
 	output, err := backup.dynamoDB.DescribeTable(&dynamodb.DescribeTableInput{
 		TableName: aws.String(tableName),
 	})
 	utils.CheckError("unable to fetch total count of records", err)
-	bar := utils.GetProgressBar(tableName, int(*output.Table.ItemCount))
-	utils.CheckError("unable to set max count of progress bar", err)
-	var items []map[string]*dynamodb.AttributeValue
-	backup.scan(tableName, func(value map[string]*dynamodb.AttributeValue) {
-		items = append(items, value)
-		bar.Incr()
-	})
-	return items
-}
-
-func (backup *backup) writeBackupJSON(outputFilePath string, items []models.BackupFormat) {
-	f, err := os.Create(outputFilePath)
-	utils.CheckError("unable write fetchItems file", err)
-	encoder := json.NewEncoder(f)
-	err = encoder.Encode(items)
-	utils.CheckError("Writing fetchItems JSON failed", err)
+	return int(*output.Table.ItemCount)
 }
 
 func (backup *backup) scan(tableName string, itemConsumer func(map[string]*dynamodb.AttributeValue)) {
-	params := &dynamodb.ScanInput{
+	params := dynamodb.ScanInput{
 		TableName: aws.String(tableName),
 	}
-	result, err := backup.dynamoDB.Scan(params)
+	result, err := backup.dynamoDB.Scan(&params)
 	utils.CheckError("Query API call failed", err)
 	for _, item := range result.Items {
 		itemConsumer(item)
 	}
 	lastEvaluatedKey := result.LastEvaluatedKey
 	for lastEvaluatedKey != nil {
-		params := &dynamodb.ScanInput{
+		params := dynamodb.ScanInput{
 			TableName:         aws.String(tableName),
 			ExclusiveStartKey: lastEvaluatedKey,
 		}
-		result, err := backup.dynamoDB.Scan(params)
+		result, err := backup.dynamoDB.Scan(&params)
 		utils.CheckError("Query API call failed", err)
 		for _, item := range result.Items {
 			itemConsumer(item)
