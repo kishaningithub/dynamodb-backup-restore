@@ -12,6 +12,7 @@ import (
 	"github.com/kishaningithub/dynamodb-backup-restore/models"
 	"github.com/kishaningithub/dynamodb-backup-restore/utils"
 	"os"
+	"runtime"
 )
 
 type Restore interface {
@@ -42,7 +43,8 @@ func (restore *restore) Restore() {
 	for table, tableMetaData := range header.TableInfo {
 		restore.progressBars[table] = utils.GetProgressBar(table, tableMetaData.TotalRecords)
 	}
-	wp := workerpool.New(header.GetNoOfTables())
+	poolSize := utils.Max(runtime.NumCPU(), header.GetNoOfTables())
+	wp := workerpool.New(poolSize)
 	restore.getItemsFromBackup(decoder, func(record models.BackupRecord) {
 		wp.Submit(func() {
 			restore.writeItem(record)
