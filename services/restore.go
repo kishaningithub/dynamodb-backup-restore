@@ -68,8 +68,8 @@ func (restore *restore) getHeader(decoder *json.Decoder) models.BackupHeader {
 }
 
 func (restore *restore) getItemsFromBackup(decoder *json.Decoder, itemConsumer func(models.BackupRecord)) {
-	var item models.BackupRecord
 	for decoder.More() {
+		var item models.BackupRecord
 		err := decoder.Decode(&item)
 		utils.CheckError("Error while decoding backup file", err)
 		itemConsumer(item)
