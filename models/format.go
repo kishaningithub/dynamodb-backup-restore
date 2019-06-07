@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-)
-
 type BackupHeader struct {
 	TableInfo map[string]TableMetaData
 }
@@ -32,5 +28,5 @@ type TableMetaData struct {
 
 type BackupRecord struct {
 	TableName string
-	Item      map[string]*dynamodb.AttributeValue
+	Item      map[string]interface{}
 }

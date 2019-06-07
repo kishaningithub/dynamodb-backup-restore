@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gammazero/workerpool"
 	"github.com/gosuri/uiprogress"
 	"github.com/kishaningithub/dynamodb-backup-restore/models"
@@ -77,10 +78,12 @@ func (restore *restore) getItemsFromBackup(decoder *json.Decoder, itemConsumer f
 }
 
 func (restore *restore) writeItem(backup models.BackupRecord) {
+	item, err := dynamodbattribute.MarshalMap(backup.Item)
+	utils.CheckError("Error while parsing record in backup file", err)
 	putItemInput := dynamodb.PutItemInput{
-		Item:     backup.Item,
+		Item:      item,
 		TableName: aws.String(backup.TableName),
 	}
-	_, err := restore.dynamoDB.PutItem(&putItemInput)
+	_, err = restore.dynamoDB.PutItem(&putItemInput)
 	utils.CheckError(fmt.Sprintf("put item failed for item %v for table %v", backup.Item, backup.TableName), err)
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gosuri/uiprogress"
 	"github.com/kishaningithub/dynamodb-backup-restore/models"
 	"github.com/kishaningithub/dynamodb-backup-restore/utils"
@@ -96,11 +97,14 @@ func (backup *backup) getBackupHeader(tables []string) models.BackupHeader {
 
 func (backup *backup) backupTable(tableName string, bar *uiprogress.Bar, encoder *json.Encoder) {
 	backup.scan(tableName, func(value map[string]*dynamodb.AttributeValue) {
+		var item map[string]interface{}
+		err := dynamodbattribute.UnmarshalMap(value, &item)
+		utils.CheckError("unable to parse dynamodb output", err)
 		backupData := models.BackupRecord{
 			TableName: tableName,
-			Item:      value,
+			Item:      item,
 		}
-		err := encoder.Encode(backupData)
+		err = encoder.Encode(backupData)
 		utils.CheckError("unable to write to backup file", err)
 		bar.Incr()
 	})

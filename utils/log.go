@@ -10,6 +10,6 @@ func CheckError(message string, err error) {
 }
 
 func PrintInfo(message string) {
-		log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
-		log.Println(message)
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.Println(message)
 }
