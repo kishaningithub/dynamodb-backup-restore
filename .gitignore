@@ -140,3 +140,4 @@ Temporary Items
 .envrc
 *.json
 backup_file*
+*.backup

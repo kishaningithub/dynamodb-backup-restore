@@ -45,25 +45,25 @@ wget -O - -q https://raw.githubusercontent.com/kishaningithub/dynamodb-backup-re
 ### Backup single table
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employee-details -m backup -o backup-file
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -t employee-details -m backup -o employee-details.backup
 ```
 
 ### Backup tables using regex pattern
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -p '.*-details' -m backup -o backup-file
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -p '.*-details' -m backup -o all-details-tables.backup
 ```
 
 ### Backup all tables
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -p '.*' -m backup -o backup-file
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -p '.*' -m backup -o all-tables.backup
 ```
 
 ### Restore
 
 ```bash
-AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -m restore -i backup-file
+AWS_REGION=eu-west-1 AWS_SDK_LOAD_CONFIG=true dynamodb-backup-restore -m restore -i all-tables.backup
 ```
 
 ## Usage
